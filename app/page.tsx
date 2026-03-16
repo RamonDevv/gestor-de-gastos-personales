@@ -1,65 +1,142 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from "react";
+
+/*
+  - Formulario para añadir transacciones (concepto, monto, tipo, categoría). ✅
+  - Listado filtrable por tipo/categoría.✅
+  - Balance total, ingresos vs gastos.
+  - Gráfico de pastel por categorías y gráfico de evolución mensual.
+  - Persistencia en localStorage.
+*/
 
 export default function Home() {
+  //Listas
+  const ListaOriginalTipos = ['Ingreso', 'Gasto']
+  const ListaOriginalCategoria = ['hogar', 'comida', 'transporte','tecnologia','entretenimiento', 'salud']
+
+  //localStorage concepto
+  const [concepto, setConcepto] = useState(() => {
+    const StoredConcepto = localStorage.getItem('concepto');
+    return StoredConcepto ? JSON.parse(StoredConcepto) : ''
+  })
+
+  useEffect(() => {
+    localStorage.setItem('Concepto', JSON.stringify(concepto))
+  }, [concepto]);
+
+    const [monto, setmonto] = useState(() => {
+    const StoredMonto = localStorage.getItem('Monto');
+    return StoredMonto ? JSON.parse(StoredMonto) : ''
+  })
+  
+
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="form-page">
+      <section className="transaction-card" aria-labelledby="transaction-title">
+        <h1 id="transaction-title">Nueva transaccion</h1>
+        <p>Registra un ingreso o gasto con su categoria.</p>
+
+        <form className="transaction-form">
+          <label htmlFor="concepto">Concepto</label>
+          <input
+            type="text"
+            id="concepto"
+            name="concepto"
+            placeholder="Ej: Supermercado"
+            onChange={(e) => setConcepto(e.target.value)}
+            required
+          />
+          
+
+          <label htmlFor="monto">Monto</label>
+          <input
+            type="number"
+            id="monto"
+            name="monto"
+            placeholder="Ej: 25000"
+            min="0"
+            step="0.01"
+            required
+          />
+
+          <label htmlFor="tipo">Tipo</label>
+          <select id="tipo" name="tipo" defaultValue="" required>
+            <option value="" disabled>
+              Selecciona un tipo
+            </option>
+            <option value="ingreso">Ingreso</option>
+            <option value="gasto">Gasto</option>
+          </select>
+
+          <label htmlFor="categoria">Categoria</label>
+          <select id="categoria" name="categoria" defaultValue="" required>
+            <option value="" disabled>
+              Selecciona una categoria
+            </option>
+            <option value="hogar">Hogar</option>
+            <option value="comida">Comida</option>
+            <option value="transporte">Transporte</option>
+            <option value="tecnologia">Tecnologia</option>
+            <option value="entretenimiento">Entretenimiento</option>
+            <option value="salud">Salud</option>
+          </select>
+
+          <button type="submit">Agregar transaccion</button>
+        </form>
+      </section>
+      <section className="transaction-card history-transactions" aria-label="Historial de transacciones">
+        <h1> Transacciones recientes </h1>
+        <div className="history-filters transaction-form">
+          <div className="history-filter-group">
+            <label htmlFor="history-tipo">Tipo</label>
+            <select id="history-tipo" name="history-tipo" defaultValue="">
+              <option value="" disabled>
+                Selecciona un tipo
+              </option>
+              {ListaOriginalTipos.map((item) => (
+                <option key={item} value={item.toLowerCase()}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="history-filter-group">
+            <label htmlFor="history-categoria">Categoria</label>
+            <select id="history-categoria" name="history-categoria" defaultValue="">
+              <option value="" disabled>
+                Selecciona una categoria
+              </option>
+              {ListaOriginalCategoria.map((item) => (
+                <option key={item} value={item}>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="transaction-card balance-card" aria-label="Balance total">
+        <h1>Balance total</h1>
+        <div className="balance-content">
+          <p className="balance-amount">$0.00</p>
+          <div className="balance-right" aria-label="Resumen de ingresos y gastos">
+            <div className="balance-row">
+              <p>Ingresos</p>
+              <span className="income-amount">+$0.00</span>
+            </div>
+            <div className="balance-row">
+              <p>Gastos</p>
+              <span className="expense-amount">-$0.00</span>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+    
+    </main>
+
   );
 }
