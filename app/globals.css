@@ -128,8 +128,165 @@ body {
   gap: 0.45rem;
 }
 
+.history-list-wrapper {
+  margin-top: 1rem;
+}
+
+.history-summary {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.history-item {
+  border: 1px solid color-mix(in srgb, var(--surface-border) 80%, #ffffff);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 244, 235, 0.96) 100%);
+  border-radius: 1rem;
+  padding: 0.95rem 1rem;
+  display: grid;
+  gap: 0.7rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.history-item-top,
+.history-item-bottom {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.history-item-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.history-item-title {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.history-item-date {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.history-item-bottom {
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-income {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-expense {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.history-amount {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.history-amount-income {
+  color: #166534;
+}
+
+.history-amount-expense {
+  color: #b91c1c;
+}
+
+.history-category-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.08);
+  color: #115e59;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
 .balance-card {
   min-height: 22rem;
+}
+
+.chart-card {
+  min-height: 24rem;
+}
+
+.chart-card-wide {
+  grid-column: span 2;
+}
+
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chart-card-header p {
+  margin-bottom: 0;
+}
+
+.chart-shell {
+  width: 100%;
+  height: 320px;
+  margin-top: 1rem;
+}
+
+.chart-shell-wide {
+  height: 340px;
+}
+
+.chart-empty-state {
+  margin-top: 1rem;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--surface-border);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  padding: 1rem;
+}
+
+.recharts-default-legend {
+  font-size: 0.9rem;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
 }
 
 .balance-content {
@@ -144,7 +301,14 @@ body {
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #104e48;
+}
+
+.balance-positive {
+  color: #166534;
+}
+
+.balance-negative {
+  color: #b91c1c;
 }
 
 .balance-right {
@@ -201,16 +365,41 @@ body {
   .transaction-card h1 {
     font-size: 1.5rem;
   }
+
+  .history-item-top,
+  .history-item-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .history-amount {
+    font-size: 0.96rem;
+  }
+
+  .chart-shell,
+  .chart-shell-wide,
+  .chart-empty-state {
+    min-height: 280px;
+    height: 280px;
+  }
 }
 
 @media (max-width: 1320px) {
   .form-page {
     grid-template-columns: repeat(2, minmax(280px, 500px));
   }
+
+  .chart-card-wide {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 980px) {
   .form-page {
     grid-template-columns: minmax(280px, 600px);
+  }
+
+  .chart-card-wide {
+    grid-column: span 1;
   }
 }
