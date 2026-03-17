@@ -66,13 +66,21 @@ const readLocalStorage = <T,>(key: string, fallback: T): T => {
 }
 
 export function TransactionsProvider({ children }: { children: ReactNode }) {
-  const [transacciones, setTransacciones] = useState<Transaccion[]>(() => {
-    return readLocalStorage<Transaccion[]>('transacciones', [])
-  })
+  const [transacciones, setTransacciones] = useState<Transaccion[]>([])
+  const [hasHydrated, setHasHydrated] = useState(false)
 
   useEffect(() => {
+    setTransacciones(readLocalStorage<Transaccion[]>('transacciones', []))
+    setHasHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
+
     localStorage.setItem('transacciones', JSON.stringify(transacciones))
-  }, [transacciones])
+  }, [hasHydrated, transacciones])
 
   const addTransaccion = (input: NuevaTransaccion) => {
     const nuevaTransaccion: Transaccion = {

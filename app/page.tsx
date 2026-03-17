@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useSyncExternalStore } from "react";
 import {
   Bar,
   BarChart,
@@ -25,6 +25,13 @@ import { useTransactions } from "./context/transactions-context";
 */
 
 export default function Home() {
+  type FormDraft = {
+    concepto?: string
+    monto?: string
+    tipo?: string
+    categoria?: string
+  }
+
   //Listas
   const ListaOriginalTipos = ['Ingreso', 'Gasto']
   const ListaOriginalCategoria = ['hogar', 'comida', 'transporte','tecnologia','entretenimiento', 'salud']
@@ -70,41 +77,56 @@ export default function Home() {
     return value.charAt(0).toUpperCase() + value.slice(1)
   }
 
-  //localStorage concepto
-  const [concepto, setConcepto] = useState(() => {
-    return readLocalStorage('concepto', '')
-  })
+  const emptyStoredForm = {
+    concepto: '',
+    monto: '',
+    tipo: '',
+    categoria: '',
+  }
 
-  useEffect(() => {
-    localStorage.setItem('concepto', JSON.stringify(concepto))
-  }, [concepto]);
+  const emptyStoredFormSnapshot = JSON.stringify(emptyStoredForm)
 
-  //localStorage Monto
-    const [monto, setMonto] = useState(() => {
-    return readLocalStorage('monto', '')
-  })
+  const subscribeToStoredForm = (callback: () => void) => {
+    if (typeof window === 'undefined') {
+      return () => undefined
+    }
 
-  useEffect(() => {
-    localStorage.setItem('monto', JSON.stringify(monto))
-  },[monto])
-  
-  //LocalStorage Tipo
-  const [tipo, setTipo] = useState(() => {
-    return readLocalStorage('tipo', '')
-  })
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key || ['concepto', 'monto', 'tipo', 'categoria'].includes(event.key)) {
+        callback()
+      }
+    }
 
-  useEffect(() => {
-    localStorage.setItem('tipo', JSON.stringify(tipo))
-  }, [tipo])
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }
 
-  //LocalStorage Categoria
-  const [categoria, setCategoria] = useState(() => {
-    return readLocalStorage('categoria', '')
-  })
+  const storedFormSnapshot = useSyncExternalStore(
+    subscribeToStoredForm,
+    () => JSON.stringify({
+      concepto: readLocalStorage('concepto', ''),
+      monto: readLocalStorage('monto', ''),
+      tipo: readLocalStorage('tipo', ''),
+      categoria: readLocalStorage('categoria', ''),
+    }),
+    () => emptyStoredFormSnapshot,
+  )
 
-  useEffect(() => {
-    localStorage.setItem('categoria', JSON.stringify(categoria))
-  }, [categoria])
+  const storedForm = useMemo(() => {
+    return JSON.parse(storedFormSnapshot) as typeof emptyStoredForm
+  }, [storedFormSnapshot])
+
+  const [draftForm, setDraftForm] = useState<FormDraft>({})
+
+  const concepto = draftForm.concepto ?? storedForm.concepto
+  const monto = draftForm.monto ?? storedForm.monto
+  const tipo = draftForm.tipo ?? storedForm.tipo
+  const categoria = draftForm.categoria ?? storedForm.categoria
+
+  const updateStoredField = (field: keyof typeof emptyStoredForm, value: string) => {
+    setDraftForm((prev) => ({ ...prev, [field]: value }))
+    localStorage.setItem(field, JSON.stringify(value))
+  }
 
   const [historyTipo, setHistoryTipo] = useState('')
   const [historyCategoria, setHistoryCategoria] = useState('')
@@ -116,6 +138,10 @@ export default function Home() {
       return matchTipo && matchCategoria
     })
   }, [transacciones, historyTipo, historyCategoria])
+
+  const transaccionesRecientes = useMemo(() => {
+    return transaccionesFiltradas.slice(0, 3)
+  }, [transaccionesFiltradas])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -131,10 +157,16 @@ export default function Home() {
       tipo,
       categoria,
     })
-    setConcepto('')
-    setMonto('')
-    setTipo('')
-    setCategoria('')
+    setDraftForm({
+      concepto: '',
+      monto: '',
+      tipo: '',
+      categoria: '',
+    })
+    localStorage.setItem('concepto', JSON.stringify(''))
+    localStorage.setItem('monto', JSON.stringify(''))
+    localStorage.setItem('tipo', JSON.stringify(''))
+    localStorage.setItem('categoria', JSON.stringify(''))
   }
 
 
@@ -154,7 +186,7 @@ export default function Home() {
             name="concepto"
             placeholder="Ej: Supermercado"
             value={concepto}
-            onChange={(e) => setConcepto(e.target.value)}
+            onChange={(e) => updateStoredField('concepto', e.target.value)}
             required
           />
           
@@ -168,12 +200,12 @@ export default function Home() {
             min="0"
             step="0.01"
             value={monto}
-            onChange={(e) => setMonto(e.target.value)}
+            onChange={(e) => updateStoredField('monto', e.target.value)}
             required
           />
 
           <label htmlFor="tipo">Tipo</label>
-          <select id="tipo" name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} required>
+          <select id="tipo" name="tipo" value={tipo} onChange={(e) => updateStoredField('tipo', e.target.value)} required>
             <option value="" disabled>
               Selecciona un tipo
             </option>
@@ -182,7 +214,7 @@ export default function Home() {
           </select>
 
           <label htmlFor="categoria">Categoria</label>
-          <select id="categoria" name="categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
+          <select id="categoria" name="categoria" value={categoria} onChange={(e) => updateStoredField('categoria', e.target.value)} required>
             <option value="" disabled>
               Selecciona una categoria
             </option>
@@ -230,16 +262,16 @@ export default function Home() {
         </div>
 
         <div className="history-list-wrapper">
-          {transaccionesFiltradas.length === 0 ? (
+          {transaccionesRecientes.length === 0 ? (
             <p>No hay transacciones registradas.</p>
           ) : (
             <>
               <div className="history-summary">
-                <span>{transaccionesFiltradas.length} movimientos</span>
+                <span>Mostrando {transaccionesRecientes.length} de {transaccionesFiltradas.length} movimientos</span>
               </div>
 
               <ul className="history-list">
-              {transaccionesFiltradas.map((item) => (
+              {transaccionesRecientes.map((item) => (
                 <li key={item.id} className="history-item">
                   <div className="history-item-top">
                     <div className="history-item-copy">
